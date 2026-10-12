@@ -103,8 +103,8 @@ button.primary:active { filter: brightness(.95); }
 .list { display: flex; flex-direction: column; }
 .row {
   display: grid; gap: 8px; align-items: center; padding: 12px 0;
-  grid-template-columns: 1fr 76px 44px;
-  grid-template-areas: "name name x" "amt freq freq";
+  grid-template-columns: 44px 1fr 76px 44px;
+  grid-template-areas: "check name name x" "amt amt freq freq";
 }
 .row + .row { border-top: 1px solid var(--line); }
 .row:first-child { padding-top: 0; }
@@ -113,6 +113,17 @@ button.primary:active { filter: brightness(.95); }
 .row .amt { grid-area: amt; text-align: right; }
 .row .freq { grid-area: freq; }
 .row .x { grid-area: x; }
+.check { grid-area: check; width: 44px; height: 44px; display: grid; place-items: center; cursor: pointer; }
+.check input {
+  appearance: none; -webkit-appearance: none; margin: 0; padding: 0; min-height: 0;
+  width: 26px; height: 26px; border: 2px solid var(--line); border-radius: 8px; background: var(--bg);
+  display: grid; place-items: center; cursor: pointer; transition: background-color .15s, border-color .15s;
+}
+.check input::after { content: ""; width: 7px; height: 13px; border: solid var(--on-accent); border-width: 0 3px 3px 0; transform: translateY(-2px) rotate(45deg) scale(0); transition: transform .15s; }
+.check input:checked { background: var(--accent); border-color: var(--accent); }
+.check input:checked::after { transform: translateY(-2px) rotate(45deg) scale(1); }
+.row.done .title { color: var(--muted); text-decoration: line-through; }
+.row.done .amt { color: var(--muted); }
 .hint { display: block; font-size: .8rem; color: var(--muted); font-weight: 400; font-variant-numeric: tabular-nums; }
 .tag { font-size: .68rem; color: var(--accent); margin-left: 6px; border: 1px solid currentColor; border-radius: 99px; padding: 0 6px; font-weight: 500; vertical-align: 1px; }
 .freq { min-height: 44px; font-size: .85rem; color: var(--muted); }
@@ -148,6 +159,8 @@ button.primary:active { filter: brightness(.95); }
 .bar.high span { background: var(--gold); }
 .bar.over span { background: var(--warn); }
 .pct { margin: 0; color: var(--muted); font-size: .85rem; text-align: center; }
+.paid { margin-top: -4px; }
+.paid:empty { display: none; }
 
 .toast {
   position: fixed; left: 50%; transform: translateX(-50%); z-index: 10;
@@ -165,7 +178,7 @@ button.primary:active { filter: brightness(.95); }
   .card { padding: 20px 24px; }
   .settings { display: grid; grid-template-columns: 1fr 1fr; }
   .settings .salary { grid-column: 1 / -1; }
-  .row { grid-template-columns: 1fr 130px 76px 44px; grid-template-areas: "name amt freq x"; }
+  .row { grid-template-columns: 44px 1fr 130px 76px 44px; grid-template-areas: "check name amt freq x"; }
   .add { grid-template-columns: 1fr 140px 120px; }
   .add #newTitle { grid-column: auto; }
   .summary { margin: 8px 0 16px; border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 24px; }
@@ -174,4 +187,4 @@ button.primary:active { filter: brightness(.95); }
 }
 
 @media (hover: hover) { .icon-btn:hover, .freq:hover, .reset:hover, .days button:hover:not([aria-pressed="true"]) { border-color: var(--accent); color: var(--accent); } }
-@media (prefers-reduced-motion: reduce) { .bar span { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .bar span, .check input, .check input::after { transition: none; } }

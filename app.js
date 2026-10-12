@@ -16,8 +16,9 @@ const DRAFT = "monthly-spend-draft";
 
 const $ = id => document.getElementById(id);
 const num = v => { const n = parseFloat(String(v).replace(",", ".")); return Number.isFinite(n) && n > 0 ? n : 0; };
-const defaultItems = () => DEFAULTS.map(d => ({ title: d.title, amount: d.amount, daily: !!d.daily, custom: false }));
-const fresh = () => ({ salary: 0, days: 30, currency: DEFAULT_CURRENCY, items: defaultItems() });
+const monthKey = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+const defaultItems = () => DEFAULTS.map(d => ({ title: d.title, amount: d.amount, daily: !!d.daily, custom: false, done: false }));
+const fresh = () => ({ salary: 0, days: 30, currency: DEFAULT_CURRENCY, month: monthKey(), items: defaultItems() });
 
 // Load saved data, repairing anything missing or malformed
 function load() {
@@ -28,13 +29,24 @@ function load() {
     salary: num(s.salary),
     days: DAYS.includes(s.days) ? s.days : 30,
     currency: (typeof s.currency === "string" && s.currency.trim()) || DEFAULT_CURRENCY,
+    month: typeof s.month === "string" ? s.month : monthKey(),
     items: s.items
       .filter(it => it && typeof it.title === "string" && it.title.trim())
-      .map(it => ({ title: it.title.trim().slice(0, 40), amount: num(it.amount), daily: !!it.daily, custom: !!it.custom })),
+      .map(it => ({ title: it.title.trim().slice(0, 40), amount: num(it.amount), daily: !!it.daily, custom: !!it.custom, done: !!it.done })),
   };
 }
 
 let state = load();
+
+// A new month started: every expense is unpaid again
+function rollMonth() {
+  const now = monthKey();
+  if (state.month === now) return false;
+  state.month = now;
+  state.items.forEach(it => { it.done = false; });
+  return true;
+}
+rollMonth();
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} };
 const monthly = it => it.amount * (it.daily ? state.days : 1);
 
@@ -53,11 +65,21 @@ function render() {
   list.replaceChildren();
   state.items.forEach((it, i) => {
     const row = document.createElement("div");
-    row.className = "row";
+    row.className = "row" + (it.done ? " done" : "");
+
+    const check = document.createElement("label");
+    check.className = "check";
+    const box = document.createElement("input");
+    box.type = "checkbox"; box.checked = it.done;
+    box.setAttribute("aria-label", `${it.title} paid this month`);
+    box.addEventListener("change", () => { it.done = box.checked; row.classList.toggle("done", it.done); update(); });
+    check.append(box);
 
     const name = document.createElement("span");
     name.className = "name";
-    name.textContent = it.title;
+    const title = document.createElement("span");
+    title.className = "title"; title.textContent = it.title;
+    name.append(title);
     if (it.custom) { const t = document.createElement("span"); t.className = "tag"; t.textContent = "custom"; name.append(t); }
     const hint = document.createElement("span");
     hint.className = "hint"; hint.dataset.i = i;
@@ -81,7 +103,7 @@ function render() {
     x.setAttribute("aria-label", "Remove " + it.title);
     x.addEventListener("click", () => removeItem(i));
 
-    row.append(name, amt, fq, x);
+    row.append(check, name, amt, fq, x);
     list.append(row);
   });
   $("empty").hidden = state.items.length > 0;
@@ -106,6 +128,11 @@ function update() {
   $("fill").style.width = (salary ? Math.min(pct, 100) : 0) + "%";
   $("bar").classList.toggle("over", pct > 100);
   $("bar").classList.toggle("high", pct > 85 && pct <= 100);
+  const paid = state.items.filter(it => it.done);
+  const toPay = state.items.reduce((s, it) => s + (it.done ? 0 : monthly(it)), 0);
+  $("paid").textContent = state.items.length
+    ? `Paid ${paid.length} of ${state.items.length}` + (toPay > 0 ? ` · ${fmt(toPay)} still to pay` : " · all done ✓")
+    : "";
   $("pct").textContent = salary
     ? (pct > 100 ? `Over budget by ${fmt(-left)}` : `${pct.toFixed(1)}% of salary spent`)
     : "Enter your salary to see what's left";
@@ -242,6 +269,12 @@ $("install").addEventListener("click", async () => {
   deferredPrompt = null; $("install").hidden = true;
 });
 addEventListener("appinstalled", () => { $("install").hidden = true; });
+
+// The app may stay open across the 1st of the month
+const checkMonth = () => { if (rollMonth()) render(); };
+document.addEventListener("visibilitychange", () => { if (!document.hidden) checkMonth(); });
+addEventListener("focus", checkMonth);
+setInterval(checkMonth, 60 * 1000);
 
 if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost" || location.hostname === "127.0.0.1")) {
   addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
