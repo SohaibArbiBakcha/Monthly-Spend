@@ -5,6 +5,8 @@ A small, offline-first budget app: enter your monthly salary and expenses (per m
 - Works on phones, tablets and desktop
 - Installable on Android (and iPhone) as an app, works offline
 - Light / dark / system theme
+- English (default), French and Arabic (right-to-left)
+- Tick expenses as paid; ticks clear automatically when a new month starts
 - Any currency: pick DH (default), $, €, £… or type your own
 - Data stays on your device (browser storage)
 
@@ -39,7 +41,8 @@ Then open http://localhost:8080 (the service worker only runs on `localhost` or 
 | --- | --- |
 | `index.html` | Page markup |
 | `styles.css` | Styles, light/dark themes, responsive layout |
-| `app.js` | App logic, currency, theme, install prompt |
+| `app.js` | App logic, currency, theme, language, install prompt |
+| `i18n.js` | English / French / Arabic text |
 | `manifest.webmanifest` | Makes the app installable (name, icons, colors) |
 | `sw.js` | Service worker for offline use — bump `VERSION` when you change files |
 | `icons/` | Logo (`logo.svg`) and generated PNG icons |

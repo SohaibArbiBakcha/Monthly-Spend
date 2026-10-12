@@ -1,10 +1,11 @@
+// Default expenses carry a key so their names follow the chosen language
 const DEFAULTS = [
-  { title: "Rent", amount: 3500 },
-  { title: "Groceries", amount: 1800 },
-  { title: "Transport", amount: 20, daily: true },
-  { title: "Coffee & snacks", amount: 15, daily: true },
-  { title: "Electricity & water", amount: 350 },
-  { title: "Internet & phone", amount: 250 },
+  { key: "rent", amount: 3500 },
+  { key: "groceries", amount: 1800 },
+  { key: "transport", amount: 20, daily: true },
+  { key: "coffee", amount: 15, daily: true },
+  { key: "utilities", amount: 350 },
+  { key: "internet", amount: 250 },
 ];
 const DEFAULT_CURRENCY = "DH";
 // Symbols written before the number ($120); everything else goes after (120 DH)
@@ -12,12 +13,23 @@ const PREFIX = new Set(["$", "€", "£", "¥", "₹", "CA$"]);
 const DAYS = [28, 29, 30, 31];
 const KEY = "monthly-spend-v1";
 const THEME_KEY = "monthly-spend-theme";
+const LANG_KEY = "monthly-spend-lang";
+
+/* ---------- Language ---------- */
+
+let lang = "en";
+try { const l = localStorage.getItem(LANG_KEY); if (I18N[l]) lang = l; } catch (e) {}
+// Look up a UI string, calling it with args when it is a function
+const t = (k, ...a) => { const v = I18N[lang][k] ?? I18N.en[k]; return typeof v === "function" ? v(...a) : v; };
+const label = it => (it.key && I18N[lang].items[it.key]) || it.title;
 const DRAFT = "monthly-spend-draft";
 
 const $ = id => document.getElementById(id);
 const num = v => { const n = parseFloat(String(v).replace(",", ".")); return Number.isFinite(n) && n > 0 ? n : 0; };
 const monthKey = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-const defaultItems = () => DEFAULTS.map(d => ({ title: d.title, amount: d.amount, daily: !!d.daily, custom: false, done: false }));
+const defaultItems = () => DEFAULTS.map(d => ({ key: d.key, title: I18N.en.items[d.key], amount: d.amount, daily: !!d.daily, custom: false, done: false }));
+// Data saved before translations existed: recognise default expenses by their English name
+const keyFor = it => (it.key && I18N.en.items[it.key] ? it.key : !it.custom ? Object.keys(I18N.en.items).find(k => I18N.en.items[k] === it.title) : undefined);
 const fresh = () => ({ salary: 0, days: 30, currency: DEFAULT_CURRENCY, month: monthKey(), items: defaultItems() });
 
 // Load saved data, repairing anything missing or malformed
@@ -32,7 +44,12 @@ function load() {
     month: typeof s.month === "string" ? s.month : monthKey(),
     items: s.items
       .filter(it => it && typeof it.title === "string" && it.title.trim())
-      .map(it => ({ title: it.title.trim().slice(0, 40), amount: num(it.amount), daily: !!it.daily, custom: !!it.custom, done: !!it.done })),
+      .map(it => {
+        const item = { title: it.title.trim().slice(0, 40), amount: num(it.amount), daily: !!it.daily, custom: !!it.custom, done: !!it.done };
+        const key = keyFor(it);
+        if (key) item.key = key;
+        return item;
+      }),
   };
 }
 
@@ -52,7 +69,7 @@ const monthly = it => it.amount * (it.daily ? state.days : 1);
 
 function fmt(n) {
   const cur = state.currency || DEFAULT_CURRENCY;
-  const s = Math.abs(n).toLocaleString(undefined, { maximumFractionDigits: 2 });
+  const s = Math.abs(n).toLocaleString(I18N[lang].locale, { maximumFractionDigits: 2 });
   const sign = n < 0 ? "−" : "";
   return PREFIX.has(cur) ? `${sign}${cur}${s}` : `${sign}${s} ${cur}`;
 }
@@ -71,16 +88,16 @@ function render() {
     check.className = "check";
     const box = document.createElement("input");
     box.type = "checkbox"; box.checked = it.done;
-    box.setAttribute("aria-label", `${it.title} paid this month`);
+    box.setAttribute("aria-label", t("paidAria", label(it)));
     box.addEventListener("change", () => { it.done = box.checked; row.classList.toggle("done", it.done); update(); });
     check.append(box);
 
     const name = document.createElement("span");
     name.className = "name";
     const title = document.createElement("span");
-    title.className = "title"; title.textContent = it.title;
+    title.className = "title"; title.textContent = label(it);
     name.append(title);
-    if (it.custom) { const t = document.createElement("span"); t.className = "tag"; t.textContent = "custom"; name.append(t); }
+    if (it.custom) { const tag = document.createElement("span"); tag.className = "tag"; tag.textContent = t("custom"); name.append(tag); }
     const hint = document.createElement("span");
     hint.className = "hint"; hint.dataset.i = i;
     name.append(hint);
@@ -89,18 +106,18 @@ function render() {
     amt.type = "number"; amt.min = "0"; amt.step = "any"; amt.className = "amt";
     amt.inputMode = "decimal"; amt.enterKeyHint = "done";
     amt.id = "amt-" + i; amt.value = it.amount || ""; amt.placeholder = "0";
-    amt.setAttribute("aria-label", it.title + " amount");
+    amt.setAttribute("aria-label", t("amountAria", label(it)));
     amt.addEventListener("input", () => { it.amount = num(amt.value); update(); });
 
     const fq = document.createElement("button");
     fq.type = "button"; fq.className = "freq" + (it.daily ? " on" : "");
-    fq.textContent = it.daily ? "/ day" : "/ mo";
-    fq.setAttribute("aria-label", `${it.title}: ${it.daily ? "per day" : "per month"}, tap to switch`);
+    fq.textContent = t(it.daily ? "day" : "mo");
+    fq.setAttribute("aria-label", t("freqAria", label(it), t(it.daily ? "perDay" : "perMonth")));
     fq.addEventListener("click", () => { it.daily = !it.daily; render(); $("list").children[i]?.querySelector(".freq")?.focus(); });
 
     const x = document.createElement("button");
     x.type = "button"; x.className = "x"; x.textContent = "×";
-    x.setAttribute("aria-label", "Remove " + it.title);
+    x.setAttribute("aria-label", t("removeAria", label(it)));
     x.addEventListener("click", () => removeItem(i));
 
     row.append(check, name, amt, fq, x);
@@ -131,11 +148,11 @@ function update() {
   const paid = state.items.filter(it => it.done);
   const toPay = state.items.reduce((s, it) => s + (it.done ? 0 : monthly(it)), 0);
   $("paid").textContent = state.items.length
-    ? `Paid ${paid.length} of ${state.items.length}` + (toPay > 0 ? ` · ${fmt(toPay)} still to pay` : " · all done ✓")
+    ? `${t("paid", paid.length, state.items.length)} · ${toPay > 0 ? t("toPay", fmt(toPay)) : t("allDone")}`
     : "";
   $("pct").textContent = salary
-    ? (pct > 100 ? `Over budget by ${fmt(-left)}` : `${pct.toFixed(1)}% of salary spent`)
-    : "Enter your salary to see what's left";
+    ? (pct > 100 ? t("over", fmt(-left)) : t("pctSpent", pct.toLocaleString(I18N[lang].locale, { maximumFractionDigits: 1 })))
+    : t("enterSalary");
   save();
 }
 
@@ -150,7 +167,7 @@ function renderCurrency() {
   $("currencyOther").hidden = isKnown;
   if (!isKnown && document.activeElement !== $("currencyOther")) $("currencyOther").value = cur;
   $("salaryUnit").textContent = cur;
-  $("subtitle").textContent = `Salary and expenses, in ${cur}.`;
+  $("subtitle").textContent = t("subtitle", cur);
 }
 
 $("currencySel").addEventListener("change", e => {
@@ -166,7 +183,7 @@ $("currencySel").addEventListener("change", e => {
 $("currencyOther").addEventListener("input", e => {
   state.currency = e.target.value.trim() || DEFAULT_CURRENCY;
   $("salaryUnit").textContent = state.currency;
-  $("subtitle").textContent = `Salary and expenses, in ${state.currency}.`;
+  $("subtitle").textContent = t("subtitle", state.currency);
   update();
 });
 $("currencyOther").addEventListener("blur", e => {
@@ -188,7 +205,7 @@ $("addForm").addEventListener("submit", e => {
   e.preventDefault();
   const title = $("newTitle").value.trim();
   $("newTitle").classList.toggle("err", !title);
-  if (!title) { $("msg").textContent = "Give the expense a title first."; $("newTitle").focus(); return; }
+  if (!title) { $("msg").textContent = t("errTitle"); $("newTitle").focus(); return; }
   $("msg").textContent = "";
   state.items.push({ title, amount: num($("newAmt").value), custom: true, daily: $("newFreq").value === "day" });
   $("newTitle").value = ""; $("newAmt").value = "";
@@ -204,7 +221,7 @@ function removeItem(i) {
   const [it] = state.items.splice(i, 1);
   lastRemoved = { it, i };
   render();
-  $("toastMsg").textContent = `Removed “${it.title}”`;
+  $("toastMsg").textContent = t("removed", label(it));
   $("toast").hidden = false;
   clearTimeout(undoTimer);
   undoTimer = setTimeout(() => { $("toast").hidden = true; lastRemoved = null; }, 5000);
@@ -223,12 +240,12 @@ $("newAmt").addEventListener("input", saveDraft);
 let armed = false, armTimer;
 $("reset").addEventListener("click", () => {
   if (!armed) {
-    armed = true; $("reset").textContent = "Tap again to confirm";
-    armTimer = setTimeout(() => { armed = false; $("reset").textContent = "Reset to defaults"; }, 3000);
+    armed = true; $("reset").textContent = t("resetConfirm");
+    armTimer = setTimeout(() => { armed = false; $("reset").textContent = t("reset"); }, 3000);
     return;
   }
   clearTimeout(armTimer);
-  armed = false; $("reset").textContent = "Reset to defaults";
+  armed = false; $("reset").textContent = t("reset");
   // Keep the user's display preferences, reset the numbers
   state = { ...fresh(), days: state.days, currency: state.currency };
   render();
@@ -244,9 +261,7 @@ function applyTheme() {
   else document.documentElement.dataset.theme = theme;
   const btn = $("theme");
   btn.dataset.mode = theme;
-  const label = { auto: "system", light: "light", dark: "dark" }[theme];
-  btn.setAttribute("aria-label", `Theme: ${label}. Tap to change`);
-  btn.title = `Theme: ${label}`;
+  btn.setAttribute("aria-label", btn.title = t("theme", t("themes")[theme]));
   // Match the phone's status bar to the page
   requestAnimationFrame(() => $("themeColor").setAttribute("content", getComputedStyle(document.body).backgroundColor));
 }
@@ -270,6 +285,29 @@ $("install").addEventListener("click", async () => {
 });
 addEventListener("appinstalled", () => { $("install").hidden = true; });
 
+/* ---------- Language switch ---------- */
+
+function applyLang() {
+  const root = document.documentElement;
+  root.lang = lang;
+  root.dir = I18N[lang].dir;
+  document.title = t("appTitle");
+  document.querySelectorAll("[data-i18n]").forEach(el => { el.textContent = t(el.dataset.i18n); });
+  document.querySelectorAll("[data-i18n-ph]").forEach(el => { el.placeholder = t(el.dataset.i18nPh); });
+  document.querySelectorAll("[data-i18n-aria]").forEach(el => { el.setAttribute("aria-label", t(el.dataset.i18nAria)); });
+  [...$("currencySel").options].forEach(o => { if (o.value !== "other") o.textContent = `${o.value} — ${t("cur")[o.value]}`; });
+  $("lang").value = lang;
+  $("lang").setAttribute("aria-label", t("language"));
+  if (!armed) $("reset").textContent = t("reset");
+  applyTheme();
+  render();
+}
+$("lang").addEventListener("change", e => {
+  lang = I18N[e.target.value] ? e.target.value : "en";
+  try { localStorage.setItem(LANG_KEY, lang); } catch (e) {}
+  applyLang();
+});
+
 // The app may stay open across the 1st of the month
 const checkMonth = () => { if (rollMonth()) render(); };
 document.addEventListener("visibilitychange", () => { if (!document.hidden) checkMonth(); });
@@ -280,4 +318,4 @@ if ("serviceWorker" in navigator && (location.protocol === "https:" || location.
   addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
 }
 
-render();
+applyLang();

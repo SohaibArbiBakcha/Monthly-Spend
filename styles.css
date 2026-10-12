@@ -11,8 +11,8 @@
   --gold: #c99a2e;
   --warn: #b5482f;
   --shadow: 0 1px 2px rgb(0 0 0 / .04), 0 4px 16px rgb(0 0 0 / .04);
-  --display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
-  --body: "Instrument Sans", "Segoe UI", system-ui, sans-serif;
+  --display: "Bricolage Grotesque", "Noto Sans Arabic", "Segoe UI", system-ui, sans-serif;
+  --body: "Instrument Sans", "Noto Sans Arabic", "Segoe UI", system-ui, sans-serif;
   --radius: 14px;
   color-scheme: light;
 }
@@ -61,6 +61,13 @@ h2 { margin: 0; }
 #theme svg { display: none; }
 #theme[data-mode="auto"] .ic-auto, #theme[data-mode="light"] .ic-light, #theme[data-mode="dark"] .ic-dark { display: block; }
 .install { color: var(--accent); border-color: var(--accent); }
+.lang { width: auto; min-height: 44px; height: 44px; border-radius: 12px; background-color: var(--surface); font-weight: 600; padding-inline-start: 12px; }
+
+/* Right-to-left (Arabic) */
+[dir="rtl"] select { background-position: 12px 50%, 17px 50%; }
+[dir="rtl"] .cap { letter-spacing: 0; }
+[dir="rtl"] h1 { letter-spacing: 0; }
+[dir="rtl"] .toast { padding: 6px 16px 6px 6px; }
 
 /* Cards */
 .card {
@@ -77,7 +84,7 @@ input, select {
   padding: 10px 12px; width: 100%; min-height: 44px; font-size: 16px;
   font-variant-numeric: tabular-nums; min-width: 0;
 }
-select { appearance: none; -webkit-appearance: none; padding-right: 32px;
+select { appearance: none; -webkit-appearance: none; padding-inline-end: 32px;
   background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%);
   background-position: calc(100% - 17px) 50%, calc(100% - 12px) 50%; background-size: 5px 5px; background-repeat: no-repeat; }
 input::placeholder { color: var(--muted); opacity: .7; }
@@ -88,15 +95,15 @@ button.primary { background: var(--accent); color: var(--on-accent); border-colo
 button.primary:active { filter: brightness(.95); }
 
 .money { position: relative; }
-.money input { font-family: var(--display); font-size: 1.6rem; font-weight: 500; padding-right: 72px; min-height: 56px; }
-.money .unit { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: var(--muted); font-weight: 600; pointer-events: none; max-width: 64px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.money input { font-family: var(--display); font-size: 1.6rem; font-weight: 500; padding-inline-end: 72px; min-height: 56px; }
+.money .unit { position: absolute; inset-inline-end: 14px; top: 50%; transform: translateY(-50%); color: var(--muted); font-weight: 600; pointer-events: none; max-width: 64px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 .currency { display: grid; grid-template-columns: 1fr; gap: 8px; }
 .currency:has(#currencyOther:not([hidden])) { grid-template-columns: 1fr 120px; }
 
 .days { display: grid; grid-template-columns: repeat(4, 1fr); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
 .days button { border: 0; border-radius: 0; min-height: 44px; color: var(--muted); font-variant-numeric: tabular-nums; }
-.days button + button { border-left: 1px solid var(--line); }
+.days button + button { border-inline-start: 1px solid var(--line); }
 .days button[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); font-weight: 600; }
 
 /* Expense rows: name on top, amount + frequency below on phones; one line on wider screens */
@@ -110,7 +117,7 @@ button.primary:active { filter: brightness(.95); }
 .row:first-child { padding-top: 0; }
 .row:last-child { padding-bottom: 0; }
 .row .name { grid-area: name; min-width: 0; overflow-wrap: anywhere; font-weight: 500; }
-.row .amt { grid-area: amt; text-align: right; }
+.row .amt { grid-area: amt; text-align: end; }
 .row .freq { grid-area: freq; }
 .row .x { grid-area: x; }
 .check { grid-area: check; width: 44px; height: 44px; display: grid; place-items: center; cursor: pointer; }
@@ -125,11 +132,10 @@ button.primary:active { filter: brightness(.95); }
 .row.done .title { color: var(--muted); text-decoration: line-through; }
 .row.done .amt { color: var(--muted); }
 .hint { display: block; font-size: .8rem; color: var(--muted); font-weight: 400; font-variant-numeric: tabular-nums; }
-.tag { font-size: .68rem; color: var(--accent); margin-left: 6px; border: 1px solid currentColor; border-radius: 99px; padding: 0 6px; font-weight: 500; vertical-align: 1px; }
+.tag { font-size: .68rem; color: var(--accent); margin-inline-start: 6px; border: 1px solid currentColor; border-radius: 99px; padding: 0 6px; font-weight: 500; vertical-align: 1px; }
 .freq { min-height: 44px; font-size: .85rem; color: var(--muted); }
 .freq.on { color: var(--accent); border-color: var(--accent); font-weight: 600; }
 .x { width: 44px; height: 44px; color: var(--muted); font-size: 1.3rem; line-height: 1; justify-self: end; }
-.x:hover { color: var(--warn); border-color: var(--warn); }
 .empty { margin: 0; text-align: center; }
 
 .add { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -150,7 +156,7 @@ button.primary:active { filter: brightness(.95); }
 }
 .figures { display: flex; justify-content: space-between; gap: 16px; }
 .fig { min-width: 0; }
-.fig + .fig { text-align: right; }
+.fig + .fig { text-align: end; }
 .fig b { display: block; font-family: var(--display); font-size: 1.35rem; line-height: 1.2; font-weight: 700; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
 .neg b { color: var(--warn); }
 .pos b { color: var(--accent); }
@@ -186,5 +192,5 @@ button.primary:active { filter: brightness(.95); }
   .toast { bottom: 160px; }
 }
 
-@media (hover: hover) { .icon-btn:hover, .freq:hover, .reset:hover, .days button:hover:not([aria-pressed="true"]) { border-color: var(--accent); color: var(--accent); } }
+@media (hover: hover) { .x:hover { color: var(--warn); border-color: var(--warn); } .icon-btn:hover, .freq:hover, .reset:hover, .days button:hover:not([aria-pressed="true"]) { border-color: var(--accent); color: var(--accent); } }
 @media (prefers-reduced-motion: reduce) { .bar span, .check input, .check input::after { transition: none; } }

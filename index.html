@@ -16,11 +16,12 @@
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Instrument+Sans:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Instrument+Sans:wght@400;500;600&family=Noto+Sans+Arabic:wght@400;500;600;700&display=swap">
   <link rel="stylesheet" href="styles.css">
   <script>
     // Apply the saved theme before first paint to avoid a flash
     try { const t = localStorage.getItem("monthly-spend-theme"); if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; } catch (e) {}
+    try { const l = localStorage.getItem("monthly-spend-lang"); if (l === "fr" || l === "ar") { document.documentElement.lang = l; document.documentElement.dir = l === "ar" ? "rtl" : "ltr"; } } catch (e) {}
   </script>
 </head>
 <body>
@@ -29,12 +30,17 @@
     <div class="brand">
       <img src="icons/logo.svg" alt="" width="36" height="36">
       <div>
-        <h1>Monthly Spend</h1>
+        <h1 data-i18n="appTitle">Monthly Spend</h1>
         <p class="sub" id="subtitle">Enter your salary and expenses.</p>
       </div>
     </div>
     <div class="tools">
-      <button type="button" class="icon-btn install" id="install" hidden aria-label="Install app">
+      <select id="lang" class="lang" aria-label="Language">
+        <option value="en">EN</option>
+        <option value="fr">FR</option>
+        <option value="ar">ع</option>
+      </select>
+      <button type="button" class="icon-btn install" id="install" hidden aria-label="Install app" data-i18n-aria="install">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0-5-5m5 5 5-5M5 21h14"/></svg>
       </button>
       <button type="button" class="icon-btn" id="theme" aria-label="Theme: system">
@@ -47,7 +53,7 @@
 
   <section class="card settings">
     <div class="field salary">
-      <label class="cap" for="salary">Monthly salary</label>
+      <label class="cap" for="salary" data-i18n="salary">Monthly salary</label>
       <div class="money">
         <input id="salary" type="number" min="0" step="any" inputmode="decimal" placeholder="0" autocomplete="off">
         <span class="unit" id="salaryUnit">DH</span>
@@ -55,7 +61,7 @@
     </div>
 
     <div class="field">
-      <label class="cap" for="currencySel">Currency</label>
+      <label class="cap" for="currencySel" data-i18n="currency">Currency</label>
       <div class="currency">
         <select id="currencySel">
           <option value="DH">DH — Moroccan dirham</option>
@@ -70,14 +76,14 @@
           <option value="AED">AED — UAE dirham</option>
           <option value="TND">TND — Tunisian dinar</option>
           <option value="DZD">DZD — Algerian dinar</option>
-          <option value="other">Other — type your own…</option>
+          <option value="other" data-i18n="other">Other — type your own…</option>
         </select>
-        <input id="currencyOther" type="text" maxlength="6" placeholder="e.g. EGP" aria-label="Custom currency" autocomplete="off" hidden>
+        <input id="currencyOther" type="text" maxlength="6" placeholder="e.g. EGP" aria-label="Custom currency" data-i18n-ph="customCurrencyPh" data-i18n-aria="customCurrency" autocomplete="off" hidden>
       </div>
     </div>
 
     <div class="field">
-      <span class="cap" id="daysLabel">Days in month <span class="muted">(for daily expenses)</span></span>
+      <span class="cap" id="daysLabel"><span data-i18n="days">Days in month</span> <span class="muted" data-i18n="daysHint">(for daily expenses)</span></span>
       <div class="days" role="group" aria-labelledby="daysLabel" id="days">
         <button type="button" data-days="28">28</button>
         <button type="button" data-days="29">29</button>
@@ -89,19 +95,19 @@
 
   <section class="card">
     <div class="card-head">
-      <h2 class="cap">Expenses</h2>
-      <span class="muted small">Tick ✓ when paid · resets each month</span>
+      <h2 class="cap" data-i18n="expenses">Expenses</h2>
+      <span class="muted small" data-i18n="expensesHint">Tick ✓ when paid · resets each month</span>
     </div>
     <div class="list" id="list"></div>
-    <p class="empty muted" id="empty" hidden>No expenses yet. Add one below.</p>
+    <p class="empty muted" id="empty" data-i18n="empty" hidden>No expenses yet. Add one below.</p>
   </section>
 
   <form class="card add" id="addForm" novalidate>
-    <h2 class="cap">Add an expense</h2>
-    <input id="newTitle" type="text" placeholder="Title (e.g. Gym)" maxlength="40" autocomplete="off" enterkeyhint="next">
-    <input id="newAmt" type="number" min="0" step="any" inputmode="decimal" placeholder="Amount" enterkeyhint="done">
-    <select id="newFreq" aria-label="Frequency"><option value="month">/ month</option><option value="day">/ day</option></select>
-    <button type="submit" class="primary">Add expense</button>
+    <h2 class="cap" data-i18n="addTitle">Add an expense</h2>
+    <input id="newTitle" type="text" placeholder="Title (e.g. Gym)" data-i18n-ph="titlePh" maxlength="40" autocomplete="off" enterkeyhint="next">
+    <input id="newAmt" type="number" min="0" step="any" inputmode="decimal" placeholder="Amount" data-i18n-ph="amountPh" enterkeyhint="done">
+    <select id="newFreq" aria-label="Frequency" data-i18n-aria="frequency"><option value="month" data-i18n="perMonthOpt">/ month</option><option value="day" data-i18n="perDayOpt">/ day</option></select>
+    <button type="submit" class="primary" data-i18n="addBtn">Add expense</button>
     <p class="msg" id="msg" role="alert"></p>
   </form>
 
@@ -109,8 +115,8 @@
 
   <section class="summary" aria-live="polite">
     <div class="figures">
-      <div class="fig"><span class="cap">Spent</span><b id="spent">0</b></div>
-      <div class="fig" id="leftBox"><span class="cap">Left</span><b id="left">0</b></div>
+      <div class="fig"><span class="cap" data-i18n="spent">Spent</span><b id="spent">0</b></div>
+      <div class="fig" id="leftBox"><span class="cap" data-i18n="left">Left</span><b id="left">0</b></div>
     </div>
     <div class="bar" id="bar"><span id="fill"></span></div>
     <p class="pct" id="pct">0% of salary spent</p>
@@ -118,8 +124,9 @@
   </section>
 </main>
 
-<div class="toast" id="toast" hidden><span id="toastMsg"></span><button type="button" id="undo">Undo</button></div>
+<div class="toast" id="toast" hidden><span id="toastMsg"></span><button type="button" id="undo" data-i18n="undo">Undo</button></div>
 
+<script src="i18n.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
