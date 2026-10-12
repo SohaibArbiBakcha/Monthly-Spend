@@ -10,18 +10,16 @@ A small, offline-first budget app: enter your monthly salary and expenses (per m
 
 ## Install on an Android phone
 
-The app has to be served over **HTTPS** to be installable. The easiest way is GitHub Pages:
+The app has to be served over **HTTPS** to be installable. It is hosted on Netlify
+(`netlify.toml`), which publishes the `master` branch:
 
-1. Merge this branch into `main`.
-2. On GitHub: **Settings → Pages → Build and deployment → Source: GitHub Actions**.
-3. The *Deploy to GitHub Pages* workflow publishes the site to
-   `https://<your-username>.github.io/<repo-name>/`.
-4. Open that link in **Chrome on Android**, then tap the install button in the app header
+1. Open https://monthlly.netlify.app/ in **Chrome on Android**.
+2. Tap the install button in the app header
    (or Chrome menu ⋮ → **Install app** / **Add to Home screen**).
 
 It now opens full screen from your home screen, with its own icon, and keeps working offline.
 
-> Want a real `.apk` for the Play Store? Paste your GitHub Pages URL into
+> Want a real `.apk` for the Play Store? Paste your Netlify URL into
 > [PWABuilder](https://www.pwabuilder.com/) and choose **Android** — it wraps this app
 > as a Trusted Web Activity package.
 
