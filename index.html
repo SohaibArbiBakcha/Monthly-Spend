@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Monthly Spend</title>
+  <meta name="description" content="Track your salary and monthly expenses, offline, on your phone.">
+  <meta name="theme-color" content="#f6f7f5" id="themeColor">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Spend">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/logo.svg" type="image/svg+xml">
+  <link rel="icon" href="icons/favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Instrument+Sans:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    // Apply the saved theme before first paint to avoid a flash
+    try { const t = localStorage.getItem("monthly-spend-theme"); if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; } catch (e) {}
+  </script>
+</head>
+<body>
+<main>
+  <header class="top">
+    <div class="brand">
+      <img src="icons/logo.svg" alt="" width="36" height="36">
+      <div>
+        <h1>Monthly Spend</h1>
+        <p class="sub" id="subtitle">Enter your salary and expenses.</p>
+      </div>
+    </div>
+    <div class="tools">
+      <button type="button" class="icon-btn install" id="install" hidden aria-label="Install app">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0-5-5m5 5 5-5M5 21h14"/></svg>
+      </button>
+      <button type="button" class="icon-btn" id="theme" aria-label="Theme: system">
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="ic-auto"><circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 1 0 16z" class="fill"/></svg>
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="ic-light"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M2 12h2m16 0h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="ic-dark"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <section class="card settings">
+    <div class="field salary">
+      <label class="cap" for="salary">Monthly salary</label>
+      <div class="money">
+        <input id="salary" type="number" min="0" step="any" inputmode="decimal" placeholder="0" autocomplete="off">
+        <span class="unit" id="salaryUnit">DH</span>
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="cap" for="currencySel">Currency</label>
+      <div class="currency">
+        <select id="currencySel">
+          <option value="DH">DH — Moroccan dirham</option>
+          <option value="$">$ — US dollar</option>
+          <option value="€">€ — Euro</option>
+          <option value="£">£ — British pound</option>
+          <option value="CA$">CA$ — Canadian dollar</option>
+          <option value="CHF">CHF — Swiss franc</option>
+          <option value="¥">¥ — Yen / Yuan</option>
+          <option value="₹">₹ — Indian rupee</option>
+          <option value="SAR">SAR — Saudi riyal</option>
+          <option value="AED">AED — UAE dirham</option>
+          <option value="TND">TND — Tunisian dinar</option>
+          <option value="DZD">DZD — Algerian dinar</option>
+          <option value="other">Other — type your own…</option>
+        </select>
+        <input id="currencyOther" type="text" maxlength="6" placeholder="e.g. EGP" aria-label="Custom currency" autocomplete="off" hidden>
+      </div>
+    </div>
+
+    <div class="field">
+      <span class="cap" id="daysLabel">Days in month <span class="muted">(for daily expenses)</span></span>
+      <div class="days" role="group" aria-labelledby="daysLabel" id="days">
+        <button type="button" data-days="28">28</button>
+        <button type="button" data-days="29">29</button>
+        <button type="button" data-days="30">30</button>
+        <button type="button" data-days="31">31</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="card-head">
+      <h2 class="cap">Expenses</h2>
+      <span class="muted small">Tap /mo or /day to switch</span>
+    </div>
+    <div class="list" id="list"></div>
+    <p class="empty muted" id="empty" hidden>No expenses yet. Add one below.</p>
+  </section>
+
+  <form class="card add" id="addForm" novalidate>
+    <h2 class="cap">Add an expense</h2>
+    <input id="newTitle" type="text" placeholder="Title (e.g. Gym)" maxlength="40" autocomplete="off" enterkeyhint="next">
+    <input id="newAmt" type="number" min="0" step="any" inputmode="decimal" placeholder="Amount" enterkeyhint="done">
+    <select id="newFreq" aria-label="Frequency"><option value="month">/ month</option><option value="day">/ day</option></select>
+    <button type="submit" class="primary">Add expense</button>
+    <p class="msg" id="msg" role="alert"></p>
+  </form>
+
+  <button class="reset" id="reset" type="button">Reset to defaults</button>
+
+  <section class="summary" aria-live="polite">
+    <div class="figures">
+      <div class="fig"><span class="cap">Spent</span><b id="spent">0</b></div>
+      <div class="fig" id="leftBox"><span class="cap">Left</span><b id="left">0</b></div>
+    </div>
+    <div class="bar" id="bar"><span id="fill"></span></div>
+    <p class="pct" id="pct">0% of salary spent</p>
+  </section>
+</main>
+
+<div class="toast" id="toast" hidden><span id="toastMsg"></span><button type="button" id="undo">Undo</button></div>
+
+<script src="app.js"></script>
+</body>
+</html>

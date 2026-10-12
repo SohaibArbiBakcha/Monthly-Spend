@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Monthly Spend">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3a8468"/>
+      <stop offset="1" stop-color="#245a46"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" fill="url(#bg)"/>
+  <circle cx="256" cy="256" r="150" fill="none" stroke="#ffffff" stroke-opacity=".2" stroke-width="38"/>
+  <circle cx="256" cy="256" r="150" fill="none" stroke="#f2c66d" stroke-width="38" stroke-linecap="round"
+          pathLength="100" stroke-dasharray="70 100" transform="rotate(-90 256 256)"/>
+  <polyline points="196,316 196,200 256,266 316,200 316,316" fill="none" stroke="#ffffff"
+            stroke-width="40" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
